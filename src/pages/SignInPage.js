@@ -6,6 +6,8 @@ import {
   fetchSignInMethodsForEmail,
 } from 'firebase/auth';
 import { Link, useNavigate } from 'react-router-dom';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { db } from '../firebase';
 
 const SignInPage = () => {
   const navigate = useNavigate();
@@ -23,7 +25,13 @@ const SignInPage = () => {
         return;
       }
       await signInWithEmailAndPassword(auth, email, password);
-      navigate('/');
+      const userRef = doc(db, 'users', auth.currentUser.uid);
+      const docSnap = await getDoc(userRef);
+      if (!docSnap.exists() || !docSnap.data().nickname) {
+        navigate('/profile-setup');
+      } else {
+        navigate('/');
+      }
     } catch (err) {
       if (err.code === 'auth/wrong-password') {
         setError('密碼錯誤，請再試一次');
@@ -36,7 +44,37 @@ const SignInPage = () => {
   const handleGoogleSignIn = async () => {
     try {
       await signInWithPopup(auth, googleProvider);
-      navigate('/');
+      const uid = auth.currentUser.uid;
+      const email = auth.currentUser.email;
+  
+      const userRef = doc(db, 'users', uid);
+      const docSnap = await getDoc(userRef);
+  
+      if (!docSnap.exists()) {
+        // 🔹 產生 userId 並初始化儲存資料
+        const generateUserId = () => {
+          const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+          let id = '#';
+          for (let i = 0; i < 4; i++) {
+            id += chars.charAt(Math.floor(Math.random() * chars.length));
+          }
+          return id;
+        };
+  
+        const userId = generateUserId();
+  
+        await setDoc(userRef, {
+          email,
+          userId
+        });
+  
+        // 跳轉去補個人資料
+        navigate('/profile-setup');
+      } else if (!docSnap.data().nickname) {
+        navigate('/profile-setup');
+      } else {
+        navigate('/');
+      }
     } catch (err) {
       if (err.code === 'auth/popup-closed-by-user') {
         setError('你關閉了 Google 登入視窗，請再試一次');
@@ -62,7 +100,7 @@ const SignInPage = () => {
         {/* 左側說明 */}
         <div className="max-w-md md:max-w-lg text-center md:text-left md:mr-16">
           <h1 className="text-3xl md:text-5xl font-bold leading-tight mb-4 text-blue-200 drop-shadow">
-            即使跨越銀河也能與你連線
+            跨越銀河也能與你連線
           </h1>
           <p className="text-base md:text-lg text-gray-300 drop-shadow">
             Corgi Chat 是宇宙中最溫暖的即時通訊平台，為你與好友搭起星際之橋。
