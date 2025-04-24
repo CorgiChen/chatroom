@@ -1,60 +1,89 @@
-
-import React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { db, auth } from '../firebase';
+import { collection, onSnapshot } from 'firebase/firestore';
+import CreateChatRoomModal from './CreateChatRoomModal';
 
 const Sidebar = ({ userData }) => {
-  const navigate = useNavigate();
   const location = useLocation();
+  const navigate = useNavigate();
+  const [showModal, setShowModal] = useState(false);
+  const [myChatrooms, setMyChatrooms] = useState([]);
 
-  const truncateName = (name) => {
-    return name && name.length > 5 ? name.slice(0, 5) + '...' : name;
-  };
+  const isActive = (path) => location.pathname === path;
 
-  const navItem = (path, label) => {
-    const active = location.pathname === path;
-    return (
-      <button
-        onClick={() => navigate(path)}
-        className={`px-4 py-2 w-full text-left transition ${active ? 'bg-[#404249] text-white font-semibold' : 'hover:bg-[#404249]'}`}
-      >
-        {label}
-      </button>
-    );
-  };
+  useEffect(() => {
+    const q = collection(db, 'chatrooms');
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const rooms = snapshot.docs
+        .map(doc => ({ id: doc.id, ...doc.data() }))
+        .filter(room => room.members.includes(auth.currentUser?.uid));
+      setMyChatrooms(rooms);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   return (
-    <aside className="w-60 bg-[#2b2d31] flex flex-col py-6">
-      <div className="px-4 mb-4">
-        <img src="/corgi_chat.png" alt="Logo" className="w-10 h-10 rounded-full" />
-      </div>
-      {navItem('/', '# 公開聊天室')}
-      {navItem('/chat', '# 私訊')}
-      {navItem('/announcements', '# 公告')}
+    <>
+      <aside className="w-60 h-screen bg-[#2b2d31] p-4 text-white hidden md:flex flex-col space-y-4">
+        <div className="text-lg font-bold text-blue-300 mb-4">Corgi Chat</div>
 
-      <div className="mt-auto w-full px-2 pt-4">
-        <div className="bg-[#232428] rounded-lg p-2 flex items-center justify-between hover:bg-[#3c3d40] transition">
-          <div className="flex items-center space-x-2">
+        <Link
+          to="/"
+          className={`block px-4 py-2 rounded hover:bg-[#404249] transition ${isActive('/') ? 'bg-[#404249]' : ''}`}
+        >
+          🏠 公開聊天室
+        </Link>
+
+        <button
+          onClick={() => setShowModal(true)}
+          className="block text-left px-4 py-2 rounded hover:bg-[#404249] transition"
+        >
+          ➕ 建立聊天室
+        </button>
+
+        <div className="mt-6">
+          <h3 className="text-xs text-gray-400 uppercase mb-2">我的聊天室</h3>
+          <div className="space-y-1">
+            {myChatrooms.length > 0 ? (
+              myChatrooms.map(room => (
+                <button
+                  key={room.id}
+                  onClick={() => navigate(`/chatroom/${room.id}`)}
+                  className={`w-full text-left px-3 py-1.5 rounded text-sm truncate hover:bg-[#404249] transition ${
+                    location.pathname === `/chatroom/${room.id}` ? 'bg-[#404249]' : ''
+                  }`}
+                >
+                  {room.name}
+                </button>
+              ))
+            ) : (
+              <p className="text-xs text-gray-500">尚未加入任何聊天室</p>
+            )}
+          </div>
+        </div>
+
+        <div className="mt-auto pt-4 border-t border-gray-700">
+          <div className="flex items-center space-x-3">
             <img
               src={userData?.avatarURL || '/corgi_chat.png'}
               alt="頭像"
               className="w-8 h-8 rounded-full object-cover"
             />
-            <div className="leading-tight">
-              <p className="text-sm font-semibold">{truncateName(userData?.nickname)}</p>
-              <p className="text-xs text-gray-400">{userData?.userId}</p>
+            <div>
+              <div className="text-sm font-semibold">{userData?.nickname || '訪客'}</div>
+              <div className="text-xs text-gray-400">{userData?.userId || ''}</div>
             </div>
-            <div className="w-2 h-2 bg-green-500 rounded-full ml-1" title="Online" />
           </div>
-          <button
-            onClick={() => navigate('/profile-setup')}
-            className="text-gray-400 hover:text-white text-lg"
-            title="編輯個資"
-          >
-            ✏️
-          </button>
         </div>
-      </div>
-    </aside>
+      </aside>
+
+      {showModal && (
+        <CreateChatRoomModal onClose={() => setShowModal(false)} />
+      )}
+    </>
   );
 };
 

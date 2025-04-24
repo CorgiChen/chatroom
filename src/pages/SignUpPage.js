@@ -63,10 +63,8 @@ const SignUpPage = () => {
       className="min-h-screen bg-cover bg-center text-white flex flex-col items-center relative"
       style={{ backgroundImage: "url('/background.jpeg')" }}
     >
-      {/* 背景遮罩 */}
       <div className="absolute inset-0 bg-black/15 z-0" />
 
-      {/* Header */}
       <header className="w-full flex justify-between items-center px-6 py-4 z-10">
         <Link to="/signin" className="flex items-center space-x-3 hover:opacity-80 transition">
           <img src="/corgi_chat.png" alt="Corgi Chat Logo" className="w-10 h-10" />
@@ -74,13 +72,11 @@ const SignUpPage = () => {
         </Link>
       </header>
 
-      {/* 標語 */}
       <section className="text-center mt-16 md:mt-14 px-6 z-10">
         <h1 className="text-3xl md:text-5xl font-bold text-blue-200 drop-shadow mb-4">在星際間留下蹤影</h1>
         <p className="text-gray-300 text-base md:text-lg drop-shadow">加入 Corgi Chat，即使跨越銀河也能與你連線。</p>
       </section>
 
-      {/* 表單卡片 */}
       <section className="w-full px-4 sm:px-6 mt-12 md:mt-12 z-10">
         <div className="max-w-md mx-auto bg-white/90 p-6 sm:p-8 rounded-2xl shadow-xl">
           <h2 className="text-2xl sm:text-3xl font-bold text-center text-gray-800 mb-6">註冊 Corgi Chat</h2>
