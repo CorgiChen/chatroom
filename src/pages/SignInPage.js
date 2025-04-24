@@ -1,4 +1,3 @@
-// SignInPage.js
 import React, { useState } from 'react';
 import { auth, googleProvider } from '../firebase';
 import {
@@ -52,26 +51,26 @@ const SignInPage = () => {
       className="min-h-screen bg-cover bg-center text-white flex flex-col"
       style={{ backgroundImage: "url('/background.jpeg')" }}
     >
-      <header className="flex justify-between items-center px-6 py-4 bg-black/15 backdrop-blur-[1px]">
+      <header className="flex justify-between items-center px-6 py-4 bg-black/15">
         <Link to="/signin" className="flex items-center space-x-3 hover:opacity-80 transition">
-            <img src="/corgi_chat.png" alt="Corgi Chat Logo" className="w-10 h-10" />
-            <span className="text-xl font-bold tracking-wide">Corgi Chat</span>
+          <img src="/corgi_chat.png" alt="Corgi Chat Logo" className="w-10 h-10" />
+          <span className="text-xl font-bold tracking-wide">Corgi Chat</span>
         </Link>
       </header>
 
-      <main className="flex flex-col md:flex-row items-center justify-center flex-1 px-6 md:px-20 py-16 bg-black/15 backdrop-blur-[1px]">
+      <main className="flex flex-col md:flex-row items-center justify-center gap-y-12 flex-1 px-6 md:px-24 py-12 bg-black/15">
         {/* 左側說明 */}
-        <div className="max-w-md text-center md:text-left mb-12 md:mb-0 md:mr-16">
-          <h1 className="text-4xl md:text-5xl font-bold leading-tight mb-4 text-blue-200 drop-shadow">
+        <div className="max-w-md md:max-w-lg text-center md:text-left md:mr-16">
+          <h1 className="text-3xl md:text-5xl font-bold leading-tight mb-4 text-blue-200 drop-shadow">
             即使跨越銀河也能與你連線
           </h1>
-          <p className="text-gray-300 text-lg drop-shadow">
+          <p className="text-base md:text-lg text-gray-300 drop-shadow">
             Corgi Chat 是宇宙中最溫暖的即時通訊平台，為你與好友搭起星際之橋。
           </p>
         </div>
 
         {/* 右側登入卡片 */}
-        <div className="w-full max-w-md bg-white bg-opacity-90 p-8 rounded-xl shadow-lg">
+        <div className="w-full max-w-md bg-white bg-opacity-90 p-6 sm:p-8 rounded-xl shadow-lg">
           <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">登入 Corgi Chat</h2>
           <form onSubmit={handleSignIn} className="space-y-4">
             <input
@@ -119,10 +118,7 @@ const SignInPage = () => {
           )}
 
           <p className="mt-6 text-sm text-center text-gray-700">
-            還沒有帳號？
-            <Link to="/signup" className="text-blue-500 hover:underline">
-              註冊
-            </Link>
+            還沒有帳號？<Link to="/signup" className="text-blue-500 hover:underline">註冊</Link>
           </p>
         </div>
       </main>

@@ -8,9 +8,7 @@ const SignUpPage = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [nickname, setNickname] = useState('');
-  const [phone, setPhone] = useState('');
-  const [address, setAddress] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
 
   const generateUserId = () => {
@@ -37,17 +35,22 @@ const SignUpPage = () => {
   const handleSignUp = async (e) => {
     e.preventDefault();
     setError('');
+
+    if (password !== confirmPassword) {
+      setError('密碼與確認密碼不一致');
+      return;
+    }
+
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const uid = userCredential.user.uid;
       const userId = await getUniqueUserId();
+
       await setDoc(doc(db, 'users', uid), {
         email,
         userId,
-        nickname,
-        phone,
-        address,
       });
+
       alert(`註冊成功！你的使用者 ID 是：${userId}`);
       navigate('/signin');
     } catch (err) {
@@ -60,7 +63,7 @@ const SignUpPage = () => {
       className="min-h-screen bg-cover bg-center text-white flex flex-col items-center relative"
       style={{ backgroundImage: "url('/background.jpeg')" }}
     >
-      {/* 背景遮罩層 */}
+      {/* 背景遮罩 */}
       <div className="absolute inset-0 bg-black/15 z-0" />
 
       {/* Header */}
@@ -73,19 +76,19 @@ const SignUpPage = () => {
 
       {/* 標語 */}
       <section className="text-center mt-16 md:mt-14 px-6 z-10">
-        <h1 className="text-4xl md:text-5xl font-bold text-blue-200 drop-shadow mb-4">在星際間留的蹤影</h1>
-        <p className="text-gray-300 text-lg drop-shadow">加入 Corgi Chat，即使跨越銀河也能與你連線。</p>
+        <h1 className="text-3xl md:text-5xl font-bold text-blue-200 drop-shadow mb-4">在星際間下蹤影</h1>
+        <p className="text-gray-300 text-base md:text-lg drop-shadow">加入 Corgi Chat，即使跨越銀河也能與你連線。</p>
       </section>
 
       {/* 表單卡片 */}
-      <section className="w-full max-w-md mt-12 md:mt-12 px-6 z-10">
-        <div className="bg-white bg-opacity-90 p-8 rounded-xl shadow-lg">
-          <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">註冊 Corgi Chat</h2>
-          <form onSubmit={handleSignUp} className="space-y-4">
+      <section className="w-full px-4 sm:px-6 mt-12 md:mt-12 z-10">
+        <div className="max-w-md mx-auto bg-white/90 p-6 sm:p-8 rounded-2xl shadow-xl">
+          <h2 className="text-2xl sm:text-3xl font-bold text-center text-gray-800 mb-6">註冊 Corgi Chat</h2>
+          <form onSubmit={handleSignUp} className="flex flex-col gap-4">
             <input
               type="email"
               placeholder="帳號（Email）"
-              className="w-full px-4 py-2 border rounded-lg text-black"
+              className="w-full px-4 py-2 border rounded-md text-black focus:ring-2 focus:ring-blue-300 outline-none"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -93,36 +96,22 @@ const SignUpPage = () => {
             <input
               type="password"
               placeholder="密碼"
-              className="w-full px-4 py-2 border rounded-lg text-black"
+              className="w-full px-4 py-2 border rounded-md text-black focus:ring-2 focus:ring-blue-300 outline-none"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
             />
             <input
-              type="text"
-              placeholder="暱稱"
-              className="w-full px-4 py-2 border rounded-lg text-black"
-              value={nickname}
-              onChange={(e) => setNickname(e.target.value)}
+              type="password"
+              placeholder="再次輸入密碼"
+              className="w-full px-4 py-2 border rounded-md text-black focus:ring-2 focus:ring-blue-300 outline-none"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
               required
-            />
-            <input
-              type="text"
-              placeholder="電話（選填）"
-              className="w-full px-4 py-2 border rounded-lg text-black"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-            />
-            <input
-              type="text"
-              placeholder="地址（選填）"
-              className="w-full px-4 py-2 border rounded-lg text-black"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
             />
             <button
               type="submit"
-              className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg"
+              className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg transition"
             >
               註冊
             </button>
