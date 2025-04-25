@@ -13,7 +13,6 @@ import {
 } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import MessageList from '../components/MessageList';
-import AddUserByIdForm from '../components/AddUserByIdForm';
 
 const UnifiedChatRoomPage = () => {
   const { chatroomId } = useParams();
@@ -27,17 +26,6 @@ const UnifiedChatRoomPage = () => {
   const [message, setMessage] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const messagesEndRef = useRef(null);
-
-  // ✅ 抽出重用的聊天室刷新方法
-  const fetchChatroom = async () => {
-    if (!isPublic && chatroomId) {
-      const roomRef = doc(db, 'chatrooms', chatroomId);
-      const roomSnap = await getDoc(roomRef);
-      if (roomSnap.exists()) {
-        setChatroom(roomSnap.data());
-      }
-    }
-  };
 
   useEffect(() => {
     if (!currentUid) return;
@@ -124,11 +112,11 @@ const UnifiedChatRoomPage = () => {
   return (
     <div className="flex flex-col h-full bg-[#1e1f22] text-white">
       {/* 上方：聊天室名稱 + 搜尋 */}
-      <div className="p-3 border-b border-gray-700 bg-[#2b2d31] flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="p-3 border-b border-gray-700 bg-[#2b2d31] flex items-center justify-between">
         <div className="text-lg font-bold text-white md:ml-4">
           {chatroomName}
         </div>
-        <div className="w-full md:w-2/3 mx-auto">
+        <div className="w-2/3 flex items-center">
           <input
             type="text"
             placeholder="搜尋訊息..."
@@ -153,17 +141,19 @@ const UnifiedChatRoomPage = () => {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* 底部：加入 ID + 傳送訊息 */}
+      {/* 底部：加人 + 輸入訊息 */}
       <form
         onSubmit={handleSend}
         className="p-4 border-t border-gray-700 bg-[#2b2d31] flex items-center gap-2 flex-wrap md:flex-nowrap"
       >
-        {!isPublic && chatroomId && (
+        {/* 邀請 ID 功能（私人聊天室才顯示） */}
+        {/* {!isPublic && chatroomId && (
           <div className="w-full md:w-auto">
-            <AddUserByIdForm chatroomId={chatroomId} onSuccess={fetchChatroom} />
+            <AddUserByIdForm chatroomId={chatroomId} />
           </div>
-        )}
+        )} */}
 
+        {/* 訊息輸入欄 + 發送按鈕 */}
         <div className="flex flex-1 gap-2 w-full">
           <input
             type="text"

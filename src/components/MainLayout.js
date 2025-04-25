@@ -73,6 +73,23 @@ const MainLayout = () => {
 
   return (
     <div className="relative flex h-screen bg-[#1e1f22] text-white overflow-hidden">
+      {isMobile && !showSidebar && !showMembers && (
+        <>
+          <button
+            onClick={toggleSidebar}
+            className="fixed bottom-48 left-4 z-40 bg-[#aaaaaa] px-4 py-2 text-xl rounded-full shadow"
+          >
+            ☰
+          </button>
+          <button
+            onClick={toggleMembers}
+            className="fixed bottom-48 right-4 z-40 bg-[#aaaaaa] px-4 py-2 text-xl rounded-full shadow"
+          >
+            👥
+          </button>
+        </>
+      )}
+
       {/* 🔸 Sidebar（桌機固定，手機懸浮） */}
       {(isMobile && showSidebar) && (
         <div className="fixed inset-0 bg-black/70 z-30" onClick={() => setShowSidebar(false)}>
@@ -87,21 +104,13 @@ const MainLayout = () => {
         </aside>
       )}
 
-
       {/* 中間內容區（限制寬度） */}
-      <main className="flex-1 flex flex-col overflow-hidden max-w-full relative pt-[48px] md:pt-0">
+      <main className="flex-1 flex flex-col overflow-hidden relative">
         <div className="flex-1 overflow-hidden">
           <div className="max-w-[700px] w-full mx-auto h-full">
-            <Outlet />
+              <Outlet />
           </div>
         </div>
-        {isMobile && (
-        <div className="px-4 pt-2 pb-2 flex items-center justify-between">
-          <button onClick={toggleSidebar} className="px-4 py-2 text-xl rounded bg-[#3b3d41] shadow">☰</button>
-          <div className="flex-1"></div>
-          <button onClick={toggleMembers} className="px-4 py-2 text-xl rounded bg-[#3b3d41] shadow">👥</button>
-        </div>
-        )}
       </main>
 
       {/* 🔹 MemberList（桌機固定，手機懸浮） */}

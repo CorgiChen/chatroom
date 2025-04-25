@@ -29,9 +29,9 @@ const Sidebar = ({ userData }) => {
 
   return (
     <>
-      <aside className="w-60 h-full bg-[#2b2d31] p-4 text-white flex flex-col space-y-4 relative">
+      <div className="w-60 h-screen bg-[#2b2d31] border-l border-gray-700 p-4 flex flex-col space-y-4 overflow-y-auto">
       {/* Logo */}
-        <div className="text-lg font-bold text-blue-300 mb-4">Corgi Chat</div>
+        <div className="text-lg font-bold text-blue-300 mb-4 ">Corgi Chat</div>
 
         {/* 公開聊天室 */}
         <Link
@@ -102,7 +102,7 @@ const Sidebar = ({ userData }) => {
             </div>
           )}
         </div>
-      </aside>
+      </div>
 
       {/* 建立聊天室 Modal */}
       {showModal && (

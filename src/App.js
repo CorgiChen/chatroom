@@ -12,6 +12,7 @@ const App = () => {
     <Router>
       <Routes>
         {/* 登入註冊 & 設定頁 */}
+        <Route path="/" element={<SignInPage />} />
         <Route path="/signin" element={<SignInPage />} />
         <Route path="/signup" element={<SignUpPage />} />
         <Route path="/profile-setup" element={<ProfileSetupPage />} />
