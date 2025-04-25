@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { auth, db } from '../firebase';
 import { doc, getDoc, getDocs, collection } from 'firebase/firestore';
 import Sidebar from './Sidebar';
@@ -8,9 +8,13 @@ import MemberList from './MemberList';
 const MainLayout = () => {
   const [userData, setUserData] = useState(null);
   const [allUsers, setAllUsers] = useState([]);
-  const [showSidebar, setShowSidebar] = useState(false);
-  const [showMemberList, setShowMemberList] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // ✅ 自動抓 chatroomId（如果是私人聊天室）
+  const chatroomId = location.pathname.startsWith('/chatroom/')
+    ? location.pathname.split('/chatroom/')[1]
+    : null;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -34,7 +38,7 @@ const MainLayout = () => {
       const querySnap = await getDocs(collection(db, 'users'));
       const users = [];
       querySnap.forEach((doc) => {
-        users.push(doc.data());
+        users.push({ uid: doc.id, ...doc.data() });
       });
       setAllUsers(users);
     };
@@ -43,34 +47,25 @@ const MainLayout = () => {
   }, [navigate]);
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#1e1f22] text-white">
-      {/* 手機上方 bar */}
-      <div className="md:hidden flex justify-between items-center p-3 bg-[#2b2d31] shadow-md">
-        <button onClick={() => setShowSidebar(!showSidebar)} className="text-white text-xl">
-          ☰
-        </button>
-        <span className="font-bold text-lg">Corgi Chat</span>
-        <button onClick={() => setShowMemberList(!showMemberList)} className="text-white text-xl">
-          👥
-        </button>
-      </div>
+    <div className="flex h-screen bg-[#1e1f22] text-white overflow-hidden">
+      {/* 左側 Sidebar */}
+      <aside className="w-60 bg-[#2b2d31] p-2 hidden md:flex flex-col">
+        <Sidebar userData={userData} />
+      </aside>
 
-      <div className="flex flex-1">
-        {/* Sidebar */}
-        <div className={`${showSidebar ? 'block' : 'hidden'} md:block`}>
-          <Sidebar userData={userData} />
-        </div>
+      {/* 中間訊息區 */}
+      <main className="flex-1 flex flex-col overflow-hidden">
+        <Outlet />
+      </main>
 
-        {/* 中間主要畫面：顯示 PublicChatRoom 或 ChatRoomPage */}
-        <main className="flex-1 px-4 py-6 overflow-y-auto">
-          <Outlet />
-        </main>
-
-        {/* 成員列表 */}
-        <div className={`${showMemberList ? 'block' : 'hidden'} md:block`}>
-          <MemberList allUsers={allUsers} currentNickname={userData?.nickname} />
-        </div>
-      </div>
+      {/* 右側成員列表 */}
+      <aside className="w-70 bg-[#2b2d31] border-1 p1 border-gray-700 overflow-y-auto hidden md:block">
+        <MemberList
+          allUsers={allUsers}
+          currentNickname={userData?.nickname}
+          chatroomId={chatroomId} // ✅ 正確傳 chatroomId
+        />
+      </aside>
     </div>
   );
 };
