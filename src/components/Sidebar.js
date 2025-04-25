@@ -29,8 +29,8 @@ const Sidebar = ({ userData }) => {
 
   return (
     <>
-      <aside className="w-60 h-screen bg-[#2b2d31] p-4 text-white hidden md:flex flex-col space-y-4 relative">
-        {/* Logo */}
+      <aside className="w-60 h-full bg-[#2b2d31] p-4 text-white flex flex-col space-y-4 relative">
+      {/* Logo */}
         <div className="text-lg font-bold text-blue-300 mb-4">Corgi Chat</div>
 
         {/* 公開聊天室 */}

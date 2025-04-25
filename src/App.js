@@ -6,7 +6,6 @@ import SignInPage from './pages/SignInPage';
 import SignUpPage from './pages/SignUpPage';
 import ProfileSetupPage from './pages/ProfileSetupPage';
 import UnifiedChatRoomPage from './pages/UnifiedChatRoomPage';
-import CreateChatRoomPage from './components/CreateChatRoomModal';
 
 const App = () => {
   return (
@@ -16,7 +15,6 @@ const App = () => {
         <Route path="/signin" element={<SignInPage />} />
         <Route path="/signup" element={<SignUpPage />} />
         <Route path="/profile-setup" element={<ProfileSetupPage />} />
-        <Route path="/create-chatroom" element={<CreateChatRoomPage />} />
 
         {/* 聊天室框架 */}
         <Route path="/" element={<MainLayout />}>
