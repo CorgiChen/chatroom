@@ -53,8 +53,8 @@ const MemberList = ({ allUsers, currentNickname, chatroomId }) => {
 
   return (
     <div className="w-60 h-screen bg-[#2b2d31] p-4 flex flex-col overflow-y-auto">
-      <h2 className="text-gray-400 uppercase">聊天室成員</h2>
       {!isPublic && chatroomId && <AddUserByIdForm chatroomId={chatroomId} />}
+      <h2 className="text-gray-400 uppercase mt-3">聊天室成員</h2>
       <div className="mt-2 space-y-1">
         {displayedUsers.length
           ? displayedUsers.map(renderUser)

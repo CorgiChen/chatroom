@@ -72,7 +72,7 @@ const AddUserByIdForm = ({ chatroomId, onSuccess }) => {
   };
 
   return (
-    <div className="flex flex-col gap-2 max-w-52 p-4 bg-gray-900 rounded-lg shadow-md">
+    <div className="flex flex-col gap-4 max-w-52 p-4 bg-gray-900 rounded-lg shadow-md">
       <label className="text-white font-semibold text-sm">透過使用者 ID 加入成員</label>
       <div className="flex gap-2">
         <input

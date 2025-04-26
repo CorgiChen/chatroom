@@ -72,7 +72,7 @@ const MainLayout = () => {
   };
 
   return (
-    <div className="relative flex h-screen bg-[#1e1f22] text-white overflow-hidden">
+    <div className="relative flex h-[100dvh]  bg-[#1e1f22] text-white overflow-hidden">
       {isMobile && !showSidebar && !showMembers && (
         <>
           <button
@@ -105,13 +105,14 @@ const MainLayout = () => {
       )}
 
       {/* 中間內容區（限制寬度） */}
-      <main className="flex-1 flex flex-col overflow-hidden relative">
-        <div className="flex-1 overflow-hidden">
-          <div className="max-w-[700px] w-full mx-auto h-full">
-              <Outlet />
+      <main className="flex-1 flex flex-col max-w-full relative md:pt-0 overflow-hidden">
+        <div className="flex-1 flex flex-col overflow-y-auto">
+          <div className="max-w-[700px] w-full mx-auto flex flex-col min-h-full">
+            <Outlet />
           </div>
         </div>
       </main>
+
 
       {/* 🔹 MemberList（桌機固定，手機懸浮） */}
       {(isMobile && showMembers) && (
