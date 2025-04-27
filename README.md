@@ -1,70 +1,144 @@
-# Getting Started with Create React App
+# Software Studio 2025 Spring
+## Midterm Project Chatroom by 111034011 陳奕宏
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-## Available Scripts
+### **如何本地運行（Setup locally）**
 
-In the project directory, you can run:
+1. `cd <專案資料夾>`
+2. `npm install`
+3. `npm start`  
+   預設在 [http://localhost:3000](http://localhost:3000) 開啟
 
-### `npm start`
+### **Demo 網址**
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- [Firebase Hosting 連結](https://ss-chatroom-111034011.web.app/)
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+--- 
+| **Basic components**         | **Score** | **Check** |
+| :--------------------------- | :-------: | :-------: |
+| Membership Mechanism         |   5%      |     Y     |
+| Firebase Hosting             |   5%      |     Y     |
+| Database read/write          |   15%     |     Y     |
+| RWD                          |   15%     |     Y     |
+| Git                          |   5%      |     Y     |
+| Chatroom  private/group      |   20%     |     Y     |
 
-### `npm test`
+# Basic components
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Basic: Git 截圖
+![image](https://hackmd.io/_uploads/HkmMaZ2yge.png)
 
-### `npm run build`
+## Basic: Database Read/Write
+![image](https://hackmd.io/_uploads/HJYe0W31gx.png)
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+---
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+| **Advanced components**      | **Score** | **Check** |
+| :--------------------------- | :-------: | :-------: |
+| Using React                  |   10%     |     Y     |
+| Google/Third-party Sign In   |   1%      |     Y     |
+| Chrome notification          |   5%      |     Y     |
+| CSS animation                |   2%      |     Y     |
+| Handle code injection        |   2%      |     Y     |
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## Advanced: Using React
+- 整個專題都是用 React 框架開發的
 
-### `npm run eject`
+## Advanced: Chrome notification
+- 只要畫面不在聊天室，其他人傳訊息就可以收到
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## Advanced: Third Party Sign In
+![image](https://hackmd.io/_uploads/ryJh1M2yex.png)
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## Advanced: CSS animation
+- 點擊成員列表
+- \>> 點擊任意成員
+- \>> 點擊小卡
+- \>> 華麗卡片旋轉動畫
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## Advanced: Handle Code Injection
+- React 只要不使用 DangerouslysetInnerHtml 就不會汙染程式碼
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+---
 
-## Learn More
+| **Bonus components**         | **Score** | **Check** |
+| :--------------------------- | :-------: | :-------: |
+| User profile                 |   1%      |     Y     |
+| Profile picture              |   1%      |     X     |
+| Send image                   |   1%      |     X     |
+| Send video                   |   1%      |     X     |
+| Chatbot (AI)                 |   2%      |     Y     |
+| Block User                   |   2%      |     X     |
+| Unsend message               |   3%      |     Y     |
+| Search for message           |   3%      |     Y     |
+| Send gif from Tenor API      |   3%      |     X     |
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## Bonus: User profile
+    - 點擊那個編輯的按鈕就會進到下方的頁面
+![image](https://hackmd.io/_uploads/r1xheGhyex.png)
+![image](https://hackmd.io/_uploads/r18ief3Jge.png)
 
-### Code Splitting
+## Bonus: Chatbot (AI) 
+![image](https://hackmd.io/_uploads/r1_UQGn1eg.png)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+## Bonus: Unsend message 
+    - 電腦版：在訊息上方就會出現；手機版：點擊一下訊息出現
+![image](https://hackmd.io/_uploads/SyfsWf3Jll.png)
 
-### Analyzing the Bundle Size
+## Bonus: Search for message
+    - 聊天室的最上面
+![image](https://hackmd.io/_uploads/HJmzzfhkel.png)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
 
-### Making a Progressive Web App
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+### **Sidebar（側邊欄）**
+- **登出按鈕**：點擊可立即登出帳號。
+- **個人小卡**：顯示你的大頭貼、暱稱、ID，可點擊編輯個人資料。
+    - 典籍後跳轉到編輯頁面。 
+- **公開聊天室**：進入所有人都能聊天的公開頻道。
+- **建立聊天室**：可建立私人群組聊天室。
+- **AI 聊天室**：與 CORGI AI 對話。
+    - 一天僅能對話 15 次
+- **聊天室清單**：顯示你加入的所有聊天室，點擊可切換。
 
-### Advanced Configuration
+### **主畫面**
+- **訊息列表**：顯示所有訊息，支援訊息搜尋、收回（unsend）。
+- **訊息輸入區**：可輸入訊息並發送，支援快捷鍵 Enter 發送。
+- **AI 聊天室**：可輸入問題與 AI 對話，支援 /vip、/clear、/help 指令。
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+### **MemberList（成員列表）**
+- 可以透過ID新增成員到私人聊天室
+- 顯示聊天室所有成員，可點擊查看成員資訊。
 
-### Deployment
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+## **功能說明與操作**
 
-### `npm run build` fails to minify
+1. **註冊/登入**  
+   - 支援 Email 註冊/登入與 Google 登入。
+2. **聊天室管理**  
+   - 可建立私人群組聊天室，並邀請其他用戶加入。
+3. **訊息功能**  
+   - 支援訊息搜尋、收回、惡意訊息過濾（防止 script/h1 等）。
+4. **AI 聊天室**  
+   - 與 CORGI AI 對話，並有 /vip、/clear、/help 指令。
+5. **RWD 響應式設計**  
+   - 手機、平板、桌機皆可正常使用。
+6. **Chrome 通知**  
+   - 新訊息時會推播通知（需允許權限）。
+7. **CSS 動畫**  
+   - 按鈕 hover、AI 聊天室按鈕有白光閃過動畫、用戶檔案小卡。
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+---
+
+## **Bonus 功能說明**
+
+- **User profile**：可編輯個人資料（暱稱、Email、電話、地址）。
+- **Chatbot (AI)**：AI 聊天室。
+    - /vip 開通當天對話無限次數
+    - /clear 清空 AI 聊天室
+    - /help 介紹指令
+- **Unsend message**：可收回自己發送的訊息。
+- **Search for message**：可搜尋聊天室訊息內容。

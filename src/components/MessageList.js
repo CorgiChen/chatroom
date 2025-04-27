@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 const MessageList = ({
   messages,
@@ -10,6 +10,7 @@ const MessageList = ({
   chatroomName = '',
 }) => {
   const messagesEndRef = useRef(null);
+  const [prevCount, setPrevCount] = useState(messages.length);
 
   const filteredMessages = messages.filter((msg) =>
     msg.text.toLowerCase().includes(searchTerm.toLowerCase())
@@ -31,8 +32,11 @@ const MessageList = ({
   };
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [filteredMessages]);
+    if (filteredMessages.length > prevCount) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+    setPrevCount(filteredMessages.length);
+  }, [filteredMessages.length, prevCount]);
 
   return (
     <div className="flex flex-col">

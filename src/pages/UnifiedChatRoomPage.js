@@ -253,12 +253,12 @@ const UnifiedChatRoomPage = () => {
         setMessage('');
         return;
       }
-      // /help 指令：補上一則預設訊息
+      // /help 指令：顯示所有可用指令說明
       if (message.trim() === '/help') {
         const msgsRef = collection(db, 'chatrooms', chatroomId, 'messages');
         await addDoc(msgsRef, {
           uid: 'bot',
-          text: '嗨！我是 CORGI AI，有什麼我可以幫忙的嗎？',
+          text: `可用指令：\n- /vip 開通當天對話無限次數\n- /clear 清空 AI 聊天室\n- /help 介紹指令`,
           createdAt: serverTimestamp(),
         });
         setMessage('');
@@ -287,22 +287,29 @@ const UnifiedChatRoomPage = () => {
       setMessage('');
       // 2. 呼叫 Gemini API
       try {
+        // 取最近 30 則 AI 聊天室訊息（user/bot）
+        const msgsRef = collection(db, 'chatrooms', chatroomId, 'messages');
+        const msgsSnap = await getDocs(msgsRef);
+        const sortedMsgs = msgsSnap.docs
+          .map(doc => ({ ...doc.data() }))
+          .filter(msg => msg.uid === currentUid || msg.uid === 'bot')
+          .sort((a, b) => a.createdAt?.seconds - b.createdAt?.seconds)
+          .slice(-30);
+        // 組成 Gemini API 的 contents
+        const contents = [
+          { role: 'user', parts: [{ text: '請用繁體中文（zh-tw）並使用台灣常用語氣回覆以下問題。' }] },
+          ...sortedMsgs.map(msg => ({
+            role: msg.uid === 'bot' ? 'model' : 'user',
+            parts: [{ text: msg.text }]
+          })),
+          { role: 'user', parts: [{ text: message.trim() }] }
+        ];
         const response = await fetch(
           'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent?key=AIzaSyA_6-h11llyDRqdq5etaMpoXiNmaS_ni4Q',
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [
-                {
-                  role: 'user',
-                  parts: [
-                    { text: '請用繁體中文（zh-tw）並使用台灣常用語氣回覆以下問題。' },
-                    { text: message.trim() }
-                  ]
-                }
-              ]
-            }),
+            body: JSON.stringify({ contents }),
           }
         );
         const data = await response.json();
