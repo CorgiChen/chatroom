@@ -82,23 +82,26 @@ const UnifiedChatRoomPage = () => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
-
+  
   const handleSend = async (e) => {
     e.preventDefault();
     if (!message.trim()) return;
-
+  
+    const textToSend = message.trim(); // ✅ 不用做 sanitize
+  
+    setMessage(''); // 先清空
+  
     const collectionRef = isPublic
       ? collection(db, 'messages')
       : collection(db, 'chatrooms', chatroomId, 'messages');
-
+  
     await addDoc(collectionRef, {
       uid: currentUid,
-      text: message.trim(),
+      text: textToSend,
       createdAt: serverTimestamp(),
     });
-
-    setMessage('');
   };
+  
 
   const handleUnsend = async (messageId) => {
     const ref = isPublic

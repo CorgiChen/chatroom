@@ -3,13 +3,11 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { db, auth } from '../firebase';
 import { collection, onSnapshot } from 'firebase/firestore';
 import CreateChatRoomModal from './CreateChatRoomModal';
-import UserHoverCard from './UserCard';
 
 const Sidebar = ({ userData }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
-  const [showCard, setShowCard] = useState(false);
   const [myChatrooms, setMyChatrooms] = useState([]);
 
   const isActive = (path) => location.pathname === path;
@@ -76,9 +74,7 @@ const Sidebar = ({ userData }) => {
         {/* 左下角使用者卡片 */}
         <div className="pt-4 border-t border-gray-700 relative">
           <div
-            className="flex items-center space-x-3 cursor-pointer bg-[#404249] px-3 py-2 rounded-md hover:bg-[#505255] transition group"
-            onMouseEnter={() => setShowCard(true)}
-            onMouseLeave={() => setShowCard(false)}
+            className="flex items-center space-x-3 bg-[#404249] px-3 py-2 rounded-md hover:bg-[#505255] transition group"
           >
             <img
               src={userData?.avatarURL || '/corgi_chat.png'}
@@ -90,17 +86,6 @@ const Sidebar = ({ userData }) => {
               <div className="text-xs text-gray-400">{userData?.userId || ''}</div>
             </div>
           </div>
-
-          {/* Hover 彈出完整小卡 */}
-          {showCard && userData && (
-            <div
-              className="absolute bottom-14 left-0 z-50 animate-fade-in"
-              onMouseEnter={() => setShowCard(true)}
-              onMouseLeave={() => setShowCard(false)}
-            >
-              <UserHoverCard user={userData} />
-            </div>
-          )}
         </div>
       </div>
 

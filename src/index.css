@@ -17,3 +17,92 @@ border-radius: 4px;
 ::-webkit-scrollbar-thumb:hover {
 background-color: #777;
 }
+
+/* 彩虹邊框轉動動畫 */
+@keyframes rainbowBorder {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* 卡片浮現動畫 */
+@keyframes fancyEntrance {
+  0% {
+    opacity: 0;
+    transform: scale(0.95) translateY(20px);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.02) translateY(0px);
+  }
+  100% {
+    transform: scale(1.00);
+  }
+}
+
+/* 彩虹邊框外層 */
+.animated-border {
+  background: linear-gradient(270deg, 
+    #ff0080, #ff8c00, #40e0d0, #8a2be2, #ff0080
+  );
+  background-size: 600% 600%;
+  animation: rainbowBorder 8s ease infinite;
+  padding: 4px; /* 邊框厚度 */
+  border-radius: 16px; /* 外圈圓角 */
+  display: inline-block; /* 讓它包住內部卡片 */
+}
+
+/* 內層卡片本體 */
+.inner-card {
+  background-color: #2b2d31; /* 你的卡片底色（深灰） */
+  border-radius: 12px; /* 內層圓角 */
+  padding: 16px;
+  color: white;
+  width: 100%; /* 填滿外層 */
+  height: 100%;
+}
+
+/* 卡片浮現動畫套用 */
+.fancy-entrance {
+  animation: fancyEntrance 0.6s ease forwards;
+}
+
+@keyframes spinThreeTimes {
+  0% {
+    transform: rotateY(0deg);
+  }
+  100% {
+    transform: rotateY(720deg);
+  }
+}
+
+.spin-animation {
+  animation: spinThreeTimes 2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes spinThreeTimes {
+  0% {
+    transform: rotateY(0deg);
+  }
+  100% {
+    transform: rotateY(720deg);
+  }
+}
+
+.spin-animation {
+  animation: spinThreeTimes 1.8s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+}
+
+.no-select {
+  user-select: none;
+}
+
+.selectable {
+  user-select: text;
+}
