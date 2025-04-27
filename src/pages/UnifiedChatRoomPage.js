@@ -10,6 +10,7 @@ import {
   addDoc,
   serverTimestamp,
   deleteDoc,
+  where,
 } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import MessageList from '../components/MessageList';
@@ -19,14 +20,169 @@ const UnifiedChatRoomPage = () => {
   const isPublic = !chatroomId;
   const navigate = useNavigate();
   const currentUid = auth.currentUser?.uid;
-
   const [chatroom, setChatroom] = useState(null);
   const [messages, setMessages] = useState([]);
   const [userMap, setUserMap] = useState({});
   const [message, setMessage] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const messagesEndRef = useRef(null);
+  const chatroomMessagesRef = useRef({});
+  const navigateRef = useRef(navigate);
 
+  // 更新 navigateRef
+  useEffect(() => {
+    navigateRef.current = navigate;
+  }, [navigate]);
+
+  // 請求通知權限
+  useEffect(() => {
+    if (!("Notification" in window)) {
+      console.log("This browser does not support notifications");
+      return;
+    }
+
+    // 如果權限是 default，則請求權限
+    if (Notification.permission === "default") {
+      Notification.requestPermission();
+    }
+  }, []);
+
+  // 監聽所有聊天室的新消息
+  useEffect(() => {
+    if (!currentUid) return;
+
+    // 檢查頁面是否可見
+    const isPageVisible = () => {
+      return document.visibilityState === 'visible';
+    };
+
+    // 顯示通知
+    const showNotification = (message, roomName, roomId = null) => {
+      // 只在頁面不可見且有通知權限時顯示通知
+      if (!isPageVisible() && Notification.permission === "granted") {
+        try {
+          const notification = new Notification('新訊息', {
+            body: `[${roomName}] ${message}`,
+            icon: '/corgi_chat.png',
+            tag: roomId || 'public', // 用於識別通知
+            silent: true, // 不播放聲音
+            renotify: true, // 允許重複通知
+          });
+
+          // 添加點擊事件
+          notification.addEventListener('click', function() {
+            console.log('Notification clicked', { roomId, roomName });
+            
+            // 聚焦到窗口
+            window.focus();
+            
+            // 根據聊天室類型導航到對應頁面
+            if (roomId) {
+              // 私人聊天室
+              navigateRef.current(`/chatroom/${roomId}`);
+            } else {
+              // 公開聊天室
+              navigateRef.current('/');
+            }
+            
+            // 關閉通知
+            this.close();
+          });
+
+          // 設置自動關閉
+          setTimeout(() => {
+            notification.close();
+          }, 5000); // 5秒後自動關閉
+        } catch (error) {
+          console.error('Error showing notification:', error);
+        }
+      }
+    };
+
+    // 監聽用戶加入的所有聊天室
+    const userChatroomsQuery = query(
+      collection(db, 'chatrooms'),
+      where('members', 'array-contains', currentUid)
+    );
+
+    const unsubscribeChatrooms = onSnapshot(userChatroomsQuery, async (snapshot) => {
+      const chatroomIds = new Set();
+      const chatroomNames = {};
+
+      // 獲取所有聊天室信息
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        chatroomIds.add(doc.id);
+        chatroomNames[doc.id] = data.name;
+      });
+
+      // 為每個聊天室設置消息監聽
+      chatroomIds.forEach((roomId) => {
+        if (!chatroomMessagesRef.current[roomId]) {
+          const messagesQuery = query(
+            collection(db, 'chatrooms', roomId, 'messages'),
+            orderBy('createdAt', 'asc')
+          );
+
+          chatroomMessagesRef.current[roomId] = onSnapshot(messagesQuery, (snapshot) => {
+            const messages = [];
+            snapshot.forEach((doc) => {
+              messages.push({ id: doc.id, ...doc.data() });
+            });
+
+            // 檢查是否有新消息
+            if (messages.length > 0) {
+              const lastMessage = messages[messages.length - 1];
+              if (lastMessage.uid !== currentUid) {
+                showNotification(lastMessage.text, chatroomNames[roomId], roomId);
+              }
+            }
+          });
+        }
+      });
+
+      // 清理不再存在的聊天室的監聽器
+      Object.keys(chatroomMessagesRef.current).forEach((roomId) => {
+        if (!chatroomIds.has(roomId)) {
+          chatroomMessagesRef.current[roomId]();
+          delete chatroomMessagesRef.current[roomId];
+        }
+      });
+    });
+
+    // 監聽公開聊天室
+    const publicMessagesQuery = query(
+      collection(db, 'messages'),
+      orderBy('createdAt', 'asc')
+    );
+
+    const unsubscribePublic = onSnapshot(publicMessagesQuery, (snapshot) => {
+      const messages = [];
+      snapshot.forEach((doc) => {
+        messages.push({ id: doc.id, ...doc.data() });
+      });
+
+      // 檢查是否有新消息
+      if (messages.length > 0) {
+        const lastMessage = messages[messages.length - 1];
+        if (lastMessage.uid !== currentUid) {
+          showNotification(lastMessage.text, '公開聊天室');
+        }
+      }
+    });
+
+    // 保存當前的監聽器引用
+    const currentListeners = chatroomMessagesRef.current;
+
+    return () => {
+      unsubscribeChatrooms();
+      unsubscribePublic();
+      // 清理所有聊天室的監聽器
+      Object.values(currentListeners).forEach(unsubscribe => unsubscribe());
+    };
+  }, [currentUid]);
+
+  // 獲取當前聊天室的消息
   useEffect(() => {
     if (!currentUid) return;
 
@@ -87,7 +243,7 @@ const UnifiedChatRoomPage = () => {
     e.preventDefault();
     if (!message.trim()) return;
   
-    const textToSend = message.trim(); // ✅ 不用做 sanitize
+    const textToSend = message.trim();
   
     setMessage(''); // 先清空
   

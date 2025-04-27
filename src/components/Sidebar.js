@@ -74,17 +74,26 @@ const Sidebar = ({ userData }) => {
         {/* 左下角使用者卡片 */}
         <div className="pt-4 border-t border-gray-700 relative">
           <div
-            className="flex items-center space-x-3 bg-[#404249] px-3 py-2 rounded-md hover:bg-[#505255] transition group"
+            className="flex items-center justify-between bg-[#404249] px-3 py-2 rounded-md hover:bg-[#505255] transition group"
           >
-            <img
-              src={userData?.avatarURL || '/corgi_chat.png'}
-              alt="頭像"
-              className="w-8 h-8 rounded-full object-cover"
-            />
-            <div>
-              <div className="text-sm font-semibold">{userData?.nickname || '訪客'}</div>
-              <div className="text-xs text-gray-400">{userData?.userId || ''}</div>
+            <div className="flex items-center">
+              <img
+                src={userData?.avatarURL || '/corgi_chat.png'}
+                alt="頭像"
+                className="w-8 h-8 rounded-full object-cover mr-2"
+              />
+              <div>
+                <div className="text-sm font-semibold">{userData?.nickname || '訪客'}</div>
+                <div className="text-xs text-gray-400">{userData?.userId || ''}</div>
+              </div>
             </div>
+            <button
+              onClick={() => navigate('/profile-setup')}
+              className="bg-blue-600 hover:bg-blue-700 text-white rounded-md px-2 py-1 ml-2 transition"
+              title="編輯資料"
+            >
+              <span role="img" aria-label="edit" className="text-base">✏️</span>
+            </button>
           </div>
         </div>
       </div>

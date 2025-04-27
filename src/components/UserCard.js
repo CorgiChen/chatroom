@@ -96,8 +96,8 @@ const UserHoverCard = ({ user }) => {
         </div>
 
         <div className="text-sm text-gray-300 mt-2 whitespace-pre-line text-center">
-          {user.introduction?.trim()
-            ? user.introduction
+          {user.bio?.trim()
+            ? user.bio
             : '這個人什麼也沒留下。'}
         </div>
       </div>
