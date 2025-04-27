@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { auth, db } from '../firebase';
-import { doc, getDoc, getDocs, collection } from 'firebase/firestore';
+import { doc, getDoc, getDocs, collection, setDoc, addDoc } from 'firebase/firestore';
 import Sidebar from './Sidebar';
 import MemberList from './MemberList';
 
@@ -13,6 +13,7 @@ const MainLayout = () => {
   const [showSidebar, setShowSidebar] = useState(false);
   const [showMembers, setShowMembers] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1176);
+  const [loading, setLoading] = useState(true);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -32,8 +33,8 @@ const MainLayout = () => {
   }, []);
 
   useEffect(() => {
-    const fetchData = async () => {
-      const currentUser = auth.currentUser;
+    const unsubscribe = auth.onAuthStateChanged(async (currentUser) => {
+      setLoading(false);
       if (!currentUser) {
         navigate('/signin');
         return;
@@ -46,7 +47,26 @@ const MainLayout = () => {
         if (!data.nickname) {
           navigate('/profile-setup');
         } else {
-          setUserData(data);
+          setUserData({ uid: currentUser.uid, ...data });
+          // 自動建立 AI 聊天室
+          const aiRoomId = `ai-${currentUser.uid}`;
+          const aiRoomRef = doc(db, 'chatrooms', aiRoomId);
+          const aiRoomSnap = await getDoc(aiRoomRef);
+          if (!aiRoomSnap.exists()) {
+            await setDoc(aiRoomRef, {
+              name: 'AI 聊天室',
+              members: [currentUser.uid],
+              type: 'ai',
+              createdAt: new Date()
+            });
+            // 新增預設訊息
+            const aiMsgRef = collection(db, 'chatrooms', aiRoomId, 'messages');
+            await addDoc(aiMsgRef, {
+              uid: 'bot',
+              text: '嗨！我是 CORGI AI，有什麼我可以幫忙的嗎？',
+              createdAt: new Date()
+            });
+          }
         }
       }
 
@@ -56,9 +76,8 @@ const MainLayout = () => {
         users.push({ uid: doc.id, ...doc.data() });
       });
       setAllUsers(users);
-    };
-
-    fetchData();
+    });
+    return () => unsubscribe();
   }, [navigate]);
 
   const toggleSidebar = () => {
@@ -70,6 +89,8 @@ const MainLayout = () => {
     setShowMembers((prev) => !prev);
     setShowSidebar(false);
   };
+
+  if (loading) return <div className="flex items-center justify-center h-screen text-white text-lg">載入中...</div>;
 
   return (
     <div className="relative flex h-[100dvh]  bg-[#1e1f22] text-white overflow-hidden">

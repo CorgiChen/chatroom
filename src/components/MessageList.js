@@ -52,8 +52,8 @@ const MessageList = ({
               <div className="flex-1">
                 <div className="text-sm font-bold text-blue-400 flex justify-between items-center">
                   <span>
-                    {user.nickname || '使用者'}{' '}
-                    <span className="text-xs text-gray-400">{user.userId || ''}</span>
+                    {(msg.uid === 'bot') ? 'CORGI AI' : (user.nickname || '使用者')}{' '}
+                    <span className="text-xs text-gray-400">{(msg.uid === 'bot') ? '#AI' : (user.userId || '')}</span>
                   </span>
                   {isSelf && (
                     <button

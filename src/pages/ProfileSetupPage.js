@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { auth, db, storage } from '../firebase';
+import { auth, db } from '../firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useNavigate } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
 import { cityData } from '../data/cityData';
@@ -20,9 +19,8 @@ const ProfileSetupPage = () => {
   const [street, setStreet] = useState('');
   const [availableAreas, setAvailableAreas] = useState([]);
   const [bio, setBio] = useState('');
-  const [avatarFile, setAvatarFile] = useState(null);
-  const [avatarPreview, setAvatarPreview] = useState(null);
   const [error, setError] = useState('');
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -54,53 +52,58 @@ const ProfileSetupPage = () => {
             setAvailableAreas([]);
           }
         }
-        if (data.avatarURL) {
-          setAvatarPreview(data.avatarURL);
-        }
       }
     });
 
     return () => unsubscribe();
   }, []);
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setAvatarFile(file);
-      setAvatarPreview(URL.createObjectURL(file));
-    }
-  };
-
   const handleSave = async (e) => {
     e.preventDefault();
     setError('');
-
-    if (!nickname.trim()) {
-      setError('暱稱為必填欄位');
-      return;
+    setSaving(true);
+    try {
+      // 驗證暱稱長度
+      if (!nickname.trim()) {
+        setError('暱稱為必填欄位');
+        setSaving(false);
+        return;
+      }
+      if (nickname.length > 8) {
+        setError('暱稱不能超過8個字');
+        setSaving(false);
+        return;
+      }
+      // 驗證電話格式（可選填）
+      if (phone && !/^09\d{8}$/.test(phone)) {
+        setError('電話格式錯誤，請輸入09開頭的10碼手機號碼');
+        setSaving(false);
+        return;
+      }
+      // 驗證自我介紹長度
+      if (bio.length > 30) {
+        setError('自我介紹不能超過30字');
+        setSaving(false);
+        return;
+      }
+      const fullAddress = city && area ? `${city}${area}${street}` : '';
+      console.log('準備寫入 Firestore', { email, userId, nickname, phone, address: fullAddress, bio });
+      await setDoc(doc(db, 'users', uid), {
+        email,
+        userId,
+        nickname,
+        phone,
+        address: fullAddress,
+        bio,
+      });
+      console.log('Firestore 寫入完成');
+      alert('資料已儲存');
+      navigate('/');
+    } catch (err) {
+      setError('儲存失敗：' + (err.message || err));
+      console.error('儲存失敗', err);
     }
-
-    let avatarURL = avatarPreview;
-    if (avatarFile) {
-      const fileRef = ref(storage, `avatars/${uid}`);
-      await uploadBytes(fileRef, avatarFile);
-      avatarURL = await getDownloadURL(fileRef);
-    }
-
-    const fullAddress = city && area ? `${city}${area}${street}` : '';
-
-    await setDoc(doc(db, 'users', uid), {
-      email,
-      userId,
-      nickname,
-      phone,
-      address: fullAddress,
-      bio,
-      avatarURL,
-    });
-
-    alert('資料已儲存');
-    navigate('/');
+    setSaving(false);
   };
 
   return (
@@ -118,11 +121,11 @@ const ProfileSetupPage = () => {
           </div>
           <div>
             <label className="block mb-1 font-semibold text-pink-400">暱稱（必填）</label>
-            <input type="text" value={nickname} onChange={e => setNickname(e.target.value)} required className="w-full px-4 py-2 rounded bg-[#313338] border border-[#44464b] text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition" />
+            <input type="text" value={nickname} onChange={e => setNickname(e.target.value)} required maxLength={8} className="w-full px-4 py-2 rounded bg-[#313338] border border-[#44464b] text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition" />
           </div>
           <div>
             <label className="block mb-1 font-semibold text-gray-300">電話（選填）</label>
-            <input type="text" value={phone} onChange={e => setPhone(e.target.value)} className="w-full px-4 py-2 rounded bg-[#313338] border border-[#44464b] text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition" />
+            <input type="text" value={phone} onChange={e => setPhone(e.target.value)} maxLength={10} className="w-full px-4 py-2 rounded bg-[#313338] border border-[#44464b] text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition" />
           </div>
           {/* 地址選單組合 */}
           <div className="flex gap-2">
@@ -172,18 +175,14 @@ const ProfileSetupPage = () => {
             <textarea
               value={bio}
               onChange={e => setBio(e.target.value)}
+              maxLength={30}
               className="w-full px-4 py-2 rounded bg-[#313338] border border-[#44464b] text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
               rows={2}
             />
           </div>
-          <div>
-            <label className="block mb-1 font-semibold text-gray-300">頭像上傳（選填）</label>
-            <input type="file" accept="image/*" onChange={handleImageChange} className="block w-full text-gray-300" />
-            {avatarPreview && <img src={avatarPreview} alt="頭像預覽" className="w-24 h-24 mt-2 rounded-full object-cover border-2 border-[#44464b]" />}
-          </div>
           {error && <p className="text-pink-400 text-sm font-semibold">{error}</p>}
-          <button type="submit" className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded font-bold shadow transition">
-            儲存
+          <button type="submit" className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded font-bold shadow transition" disabled={saving}>
+            {saving ? '儲存中...' : '儲存'}
           </button>
         </form>
       </div>

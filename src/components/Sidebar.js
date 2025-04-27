@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { db, auth } from '../firebase';
 import { collection, onSnapshot } from 'firebase/firestore';
 import CreateChatRoomModal from './CreateChatRoomModal';
+import { signOut } from 'firebase/auth';
 
 const Sidebar = ({ userData }) => {
   const location = useLocation();
@@ -24,6 +25,11 @@ const Sidebar = ({ userData }) => {
 
     return () => unsubscribe();
   }, []);
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    navigate('/signin');
+  };
 
   return (
     <>
@@ -50,11 +56,19 @@ const Sidebar = ({ userData }) => {
         </button>
 
         {/* 我的聊天室清單 */}
+        {userData && userData.uid && (
+          <button
+            onClick={() => navigate(`/chatroom/ai-${userData.uid}`)}
+            className="w-full text-left px-3 py-1.5 rounded text-sm bg-gradient-to-r from-blue-500 to-purple-500 text-white font-bold mb-2"
+          >
+            🤖 AI 聊天室
+          </button>
+        )}
         <div className="mt-6 flex-1 overflow-y-auto">
           <h3 className="text-xs text-gray-400 uppercase mb-2">我的聊天室</h3>
           <div className="space-y-1">
-            {myChatrooms.length > 0 ? (
-              myChatrooms.map((room) => (
+            {myChatrooms.filter(room => room.type !== 'ai').length > 0 ? (
+              myChatrooms.filter(room => room.type !== 'ai').map((room) => (
                 <button
                   key={room.id}
                   onClick={() => navigate(`/chatroom/${room.id}`)}
@@ -71,11 +85,21 @@ const Sidebar = ({ userData }) => {
           </div>
         </div>
 
-        {/* 左下角使用者卡片 */}
-        <div className="pt-4 border-t border-gray-700 relative">
-          <div
-            className="flex items-center justify-between bg-[#404249] px-3 py-2 rounded-md hover:bg-[#505255] transition group"
+        {/* 左下角登出按鈕 */}
+        <div className="flex justify-end mb-2">
+          <button
+            onClick={handleLogout}
+            className="bg-gray-700 hover:bg-red-600 text-white rounded-md px-3 py-1 transition flex items-center gap-1"
+            title="登出"
           >
+            <span role="img" aria-label="logout" className="text-base">🚪</span>
+            <span className="text-sm">登出</span>
+          </button>
+        </div>
+        {/* 左下角使用者卡片 */}
+        {console.log('Sidebar userData:', userData)}
+        <div className="pt-4 border-t border-gray-700 relative">
+          <div className="flex items-center justify-between bg-[#404249] px-3 py-2 rounded-md hover:bg-[#505255] transition group">
             <div className="flex items-center">
               <img
                 src={userData?.avatarURL || '/corgi_chat.png'}

@@ -11,6 +11,8 @@ import {
   serverTimestamp,
   deleteDoc,
   where,
+  setDoc,
+  getDocs,
 } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import MessageList from '../components/MessageList';
@@ -58,41 +60,29 @@ const UnifiedChatRoomPage = () => {
 
     // 顯示通知
     const showNotification = (message, roomName, roomId = null) => {
-      // 只在頁面不可見且有通知權限時顯示通知
       if (!isPageVisible() && Notification.permission === "granted") {
         try {
           const notification = new Notification('新訊息', {
-            body: `[${roomName}] ${message}`,
+            body: `[${roomName || (roomId ? '私人聊天室' : '公開聊天室')}] ${message}`,
             icon: '/corgi_chat.png',
-            tag: roomId || 'public', // 用於識別通知
-            silent: true, // 不播放聲音
-            renotify: true, // 允許重複通知
+            tag: roomId || 'public',
+            silent: true,
+            renotify: true,
           });
 
-          // 添加點擊事件
-          notification.addEventListener('click', function() {
-            console.log('Notification clicked', { roomId, roomName });
-            
-            // 聚焦到窗口
+          notification.onclick = function() {
             window.focus();
-            
-            // 根據聊天室類型導航到對應頁面
             if (roomId) {
-              // 私人聊天室
-              navigateRef.current(`/chatroom/${roomId}`);
+              window.location.href = `/chatroom/${roomId}`;
             } else {
-              // 公開聊天室
-              navigateRef.current('/');
+              window.location.href = '/';
             }
-            
-            // 關閉通知
             this.close();
-          });
+          };
 
-          // 設置自動關閉
           setTimeout(() => {
             notification.close();
-          }, 5000); // 5秒後自動關閉
+          }, 5000);
         } catch (error) {
           console.error('Error showing notification:', error);
         }
@@ -109,14 +99,12 @@ const UnifiedChatRoomPage = () => {
       const chatroomIds = new Set();
       const chatroomNames = {};
 
-      // 獲取所有聊天室信息
       snapshot.forEach((doc) => {
         const data = doc.data();
         chatroomIds.add(doc.id);
         chatroomNames[doc.id] = data.name;
       });
 
-      // 為每個聊天室設置消息監聽
       chatroomIds.forEach((roomId) => {
         if (!chatroomMessagesRef.current[roomId]) {
           const messagesQuery = query(
@@ -130,18 +118,16 @@ const UnifiedChatRoomPage = () => {
               messages.push({ id: doc.id, ...doc.data() });
             });
 
-            // 檢查是否有新消息
             if (messages.length > 0) {
               const lastMessage = messages[messages.length - 1];
               if (lastMessage.uid !== currentUid) {
-                showNotification(lastMessage.text, chatroomNames[roomId], roomId);
+                showNotification(lastMessage.text, chatroomNames[roomId] || '私人聊天室', roomId);
               }
             }
           });
         }
       });
 
-      // 清理不再存在的聊天室的監聽器
       Object.keys(chatroomMessagesRef.current).forEach((roomId) => {
         if (!chatroomIds.has(roomId)) {
           chatroomMessagesRef.current[roomId]();
@@ -162,7 +148,6 @@ const UnifiedChatRoomPage = () => {
         messages.push({ id: doc.id, ...doc.data() });
       });
 
-      // 檢查是否有新消息
       if (messages.length > 0) {
         const lastMessage = messages[messages.length - 1];
         if (lastMessage.uid !== currentUid) {
@@ -242,15 +227,121 @@ const UnifiedChatRoomPage = () => {
   const handleSend = async (e) => {
     e.preventDefault();
     if (!message.trim()) return;
-  
+
+    // AI 聊天室判斷
+    if (chatroomId === `ai-${currentUid}`) {
+      // /vip 指令：啟用本日無限次發問
+      if (message.trim() === '/vip') {
+        const today = new Date().toISOString().slice(0, 10);
+        localStorage.setItem('corgi_ai_vip', today);
+        setMessage('');
+        const msgsRef = collection(db, 'chatrooms', chatroomId, 'messages');
+        await addDoc(msgsRef, {
+          uid: 'bot',
+          text: '已啟用 VIP 模式，今天可以無限次發問！',
+          createdAt: serverTimestamp(),
+        });
+        return;
+      }
+      // /clear 指令：清空所有訊息（完全清空，不補預設訊息）
+      if (message.trim() === '/clear') {
+        const msgsRef = collection(db, 'chatrooms', chatroomId, 'messages');
+        const msgsSnap = await getDocs(msgsRef);
+        for (const docSnap of msgsSnap.docs) {
+          await deleteDoc(docSnap.ref);
+        }
+        setMessage('');
+        return;
+      }
+      // /help 指令：補上一則預設訊息
+      if (message.trim() === '/help') {
+        const msgsRef = collection(db, 'chatrooms', chatroomId, 'messages');
+        await addDoc(msgsRef, {
+          uid: 'bot',
+          text: '嗨！我是 CORGI AI，有什麼我可以幫忙的嗎？',
+          createdAt: serverTimestamp(),
+        });
+        setMessage('');
+        return;
+      }
+      const today = new Date().toISOString().slice(0, 10);
+      // 檢查 VIP 狀態
+      const isVip = localStorage.getItem('corgi_ai_vip') === today;
+      const userRef = doc(db, 'users', currentUid);
+      const userSnap = await getDoc(userRef);
+      const userData = userSnap.data();
+      let count = 0;
+      if (userData.aiMessageDate === today) {
+        count = userData.aiMessageCount || 0;
+      }
+      if (!isVip && count >= 15) {
+        alert('你今天已經對 AI 發送 15 則訊息，請明天再試！');
+        return;
+      }
+      // 1. 先寫入自己的訊息
+      await addDoc(collection(db, 'chatrooms', chatroomId, 'messages'), {
+        uid: currentUid,
+        text: message.trim(),
+        createdAt: serverTimestamp(),
+      });
+      setMessage('');
+      // 2. 呼叫 Gemini API
+      try {
+        const response = await fetch(
+          'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent?key=AIzaSyA_6-h11llyDRqdq5etaMpoXiNmaS_ni4Q',
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [
+                {
+                  role: 'user',
+                  parts: [
+                    { text: '請用繁體中文（zh-tw）並使用台灣常用語氣回覆以下問題。' },
+                    { text: message.trim() }
+                  ]
+                }
+              ]
+            }),
+          }
+        );
+        const data = await response.json();
+        console.log(data); // debug 用
+        const prefix = Math.random() < 0.5 ? '汪' : '汪汪';
+        const aiReply =
+          prefix + (
+            data.candidates?.[0]?.content?.parts?.[0]?.text ||
+            data.error?.message ||
+            'AI 無法回應'
+          );
+        // 3. 寫入 AI 回覆
+        await addDoc(collection(db, 'chatrooms', chatroomId, 'messages'), {
+          uid: 'bot',
+          text: aiReply,
+          createdAt: serverTimestamp(),
+        });
+      } catch (err) {
+        await addDoc(collection(db, 'chatrooms', chatroomId, 'messages'), {
+          uid: 'bot',
+          text: 'AI 回覆失敗，請稍後再試',
+          createdAt: serverTimestamp(),
+        });
+      }
+      // 4. 更新今日次數
+      await setDoc(userRef, {
+        ...userData,
+        aiMessageDate: today,
+        aiMessageCount: count + 1
+      }, { merge: true });
+      return;
+    }
+
+    // 一般聊天室/公開聊天室
     const textToSend = message.trim();
-  
     setMessage(''); // 先清空
-  
     const collectionRef = isPublic
       ? collection(db, 'messages')
       : collection(db, 'chatrooms', chatroomId, 'messages');
-  
     await addDoc(collectionRef, {
       uid: currentUid,
       text: textToSend,
