@@ -88,6 +88,29 @@ const Sidebar = ({ userData }) => {
             </div>
           </div>
         </div>
+        {/* 使用說明連結 */}
+        <div className={`border-b border-gray-200 dark:border-gray-700 ${
+          isDarkMode ? 'bg-[#2b2d31]' : 'bg-white'
+        }`}>
+          <a
+            href="https://hackmd.io/@iDOPzzVvRXmRv-muD4xgxQ/SJ_yib31xl"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`flex items-center space-x-3 p-3 rounded-lg transition-colors ${
+              isDarkMode 
+                ? 'bg-[#353945] hover:bg-[#404249] text-white' 
+                : 'bg-gray-100 hover:bg-gray-200 text-gray-800'
+            }`}
+          >
+            <span className="text-xl">📖</span>
+            <div>
+              <div className="font-medium">使用前請閱讀</div>
+              <div className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                點擊查看使用說明
+              </div>
+            </div>
+          </a>
+        </div>
         {/* Logo */}
         <div className={`text-lg font-bold mb-4 ${isDarkMode ? 'text-[#8ab4f8]' : 'text-blue-600'}`}>Corgi Chat</div>
 
