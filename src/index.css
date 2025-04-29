@@ -106,3 +106,41 @@ background-color: #777;
 .selectable {
   user-select: text;
 }
+
+/* Custom Scrollbar for theme */
+.custom-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll-thumb) var(--scroll-track);
+}
+.custom-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.custom-scroll::-webkit-scrollbar-thumb {
+  border-radius: 8px;
+  background: var(--scroll-thumb);
+}
+.custom-scroll::-webkit-scrollbar-track {
+  background: var(--scroll-track);
+}
+
+:root {
+  --scroll-thumb: #e0e7ef;
+  --scroll-track: #f4f6fa;
+}
+.dark {
+  --scroll-thumb: #23272f;
+  --scroll-track: #18191c;
+}
+
+html, body, #root {
+  transition: background-color 0.3s, color 0.3s, border-color 0.3s, box-shadow 0.3s;
+}
+
+.custom-scroll, .custom-scroll::-webkit-scrollbar-thumb, .custom-scroll::-webkit-scrollbar-track {
+  transition: background 0.3s, background-color 0.3s;
+}
+
+:root, .dark {
+  transition: --scroll-thumb 0.3s, --scroll-track 0.3s;
+}

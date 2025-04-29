@@ -4,12 +4,15 @@ import { db, auth } from '../firebase';
 import { collection, onSnapshot } from 'firebase/firestore';
 import CreateChatRoomModal from './CreateChatRoomModal';
 import { signOut } from 'firebase/auth';
+import { useTheme } from '../context/ThemeContext';
+import Spinner from './Spinner';
 
 const Sidebar = ({ userData }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
   const [myChatrooms, setMyChatrooms] = useState([]);
+  const { isDarkMode } = useTheme();
 
   const isActive = (path) => location.pathname === path;
 
@@ -31,23 +34,37 @@ const Sidebar = ({ userData }) => {
     navigate('/signin');
   };
 
+  if (!userData) {
+    return <div className={`flex items-center justify-center h-screen w-60 ${isDarkMode ? 'bg-[#23272f] text-white' : 'bg-[#f4f6fa] text-gray-900'}`}><Spinner size={40} /></div>;
+  }
+
   return (
     <>
-      <div className="w-60 h-screen bg-[#2b2d31] border-l border-gray-700 p-4 flex flex-col space-y-4 overflow-y-auto">
+      <div className={`w-60 h-screen flex flex-col space-y-4 overflow-y-auto border-r transition-colors duration-300 px-6 py-4 ${
+        isDarkMode
+          ? 'bg-[#23272f] border-[#23272f] text-white'
+          : 'bg-[#f4f6fa] border-gray-200 text-gray-900'
+      }`}>
         {/* 上方固定區塊：登出按鈕 + 使用者卡片 */}
-        <div className="sticky top-0 z-10 bg-[#2b2d31] pb-2">
+        <div className={`sticky top-0 z-10 pb-2 ${isDarkMode ? 'bg-[#23272f]' : 'bg-[#f4f6fa]'}`}>
           <div className="flex justify-end mb-2">
             <button
               onClick={handleLogout}
-              className="bg-gray-700 hover:bg-red-600 text-white rounded-md px-3 py-1 transition flex items-center gap-1"
+              className={`rounded-md px-3 py-1 transition flex items-center gap-1 text-sm font-medium ${
+                isDarkMode
+                  ? 'bg-[#353945] hover:bg-red-600 text-white'
+                  : 'bg-gray-200 hover:bg-red-500 text-gray-800'
+              }`}
               title="登出"
             >
               <span role="img" aria-label="logout" className="text-base">🚪</span>
-              <span className="text-sm">登出</span>
+              <span>登出</span>
             </button>
           </div>
-          <div className="pt-2 border-t border-gray-700 relative">
-            <div className="flex items-center justify-between bg-[#404249] px-3 py-2 rounded-md hover:bg-[#505255] transition group">
+          <div className="pt-2 border-t" style={{ borderColor: isDarkMode ? '#353945' : '#e5e7eb' }}>
+            <div className={`flex items-center justify-between px-3 py-2 rounded-md transition group ${
+              isDarkMode ? 'bg-[#353945] hover:bg-[#404249]' : 'bg-white hover:bg-gray-200'
+            }`}>
               <div className="flex items-center">
                 <img
                   src={userData?.avatarURL || '/corgi_chat.png'}
@@ -56,12 +73,14 @@ const Sidebar = ({ userData }) => {
                 />
                 <div>
                   <div className="text-sm font-semibold">{userData?.nickname || '訪客'}</div>
-                  <div className="text-xs text-gray-400">{userData?.userId || ''}</div>
+                  <div className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{userData?.userId || ''}</div>
                 </div>
               </div>
               <button
                 onClick={() => navigate('/profile-setup')}
-                className="bg-blue-600 hover:bg-blue-700 text-white rounded-md px-2 py-1 ml-2 transition"
+                className={`rounded-md px-2 py-1 ml-2 transition text-sm font-medium ${
+                  isDarkMode ? 'bg-[#5865F2] hover:bg-[#4752C4] text-white' : 'bg-blue-500 hover:bg-blue-600 text-white'
+                }`}
                 title="編輯資料"
               >
                 <span role="img" aria-label="edit" className="text-base">✏️</span>
@@ -70,13 +89,15 @@ const Sidebar = ({ userData }) => {
           </div>
         </div>
         {/* Logo */}
-        <div className="text-lg font-bold text-blue-300 mb-4 ">Corgi Chat</div>
+        <div className={`text-lg font-bold mb-4 ${isDarkMode ? 'text-[#8ab4f8]' : 'text-blue-600'}`}>Corgi Chat</div>
 
         {/* 公開聊天室 */}
         <Link
           to="/"
-          className={`block px-4 py-2 rounded hover:bg-[#404249] transition ${
-            isActive('/') ? 'bg-[#404249]' : ''
+          className={`block px-4 py-2 rounded transition font-medium ${
+            isDarkMode
+              ? `hover:bg-[#353945] ${isActive('/') ? 'bg-[#353945]' : ''}`
+              : `hover:bg-gray-200 ${isActive('/') ? 'bg-gray-200' : ''}`
           }`}
         >
           🏠 公開聊天室
@@ -85,7 +106,9 @@ const Sidebar = ({ userData }) => {
         {/* 建立聊天室 */}
         <button
           onClick={() => setShowModal(true)}
-          className="block text-left px-4 py-2 rounded hover:bg-[#404249] transition"
+          className={`block text-left px-4 py-2 rounded transition font-medium ${
+            isDarkMode ? 'hover:bg-[#353945]' : 'hover:bg-gray-200'
+          }`}
         >
           ➕ 建立聊天室
         </button>
@@ -94,29 +117,35 @@ const Sidebar = ({ userData }) => {
         {userData && userData.uid && (
           <button
             onClick={() => navigate(`/chatroom/ai-${userData.uid}`)}
-            className="w-full text-left px-3 py-1.5 rounded text-sm bg-gradient-to-r from-blue-500 to-purple-500 text-white font-bold mb-2 relative overflow-hidden group"
+            className={`w-full text-left px-3 py-1.5 rounded text-sm font-bold mb-2 relative overflow-hidden group transition ${
+              isDarkMode
+                ? 'bg-gradient-to-r from-[#5865F2] to-[#7f8cff] text-white'
+                : 'bg-gradient-to-r from-blue-400 to-blue-600 text-white'
+            }`}
           >
             <span className="shine-effect pointer-events-none absolute top-0 left-[-60%] w-2/3 h-full opacity-0 group-hover:opacity-100"></span>
             <span className="relative z-10">🤖 AI 聊天室</span>
           </button>
         )}
         <div className="mt-6 flex-1 overflow-y-auto">
-          <h3 className="text-xs text-gray-400 uppercase mb-2">我的聊天室</h3>
+          <h3 className={`text-xs uppercase mb-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>我的聊天室</h3>
           <div className="space-y-1">
             {myChatrooms.filter(room => room.type !== 'ai').length > 0 ? (
               myChatrooms.filter(room => room.type !== 'ai').map((room) => (
                 <button
                   key={room.id}
                   onClick={() => navigate(`/chatroom/${room.id}`)}
-                  className={`w-full text-left px-3 py-1.5 rounded text-sm truncate hover:bg-[#404249] transition ${
-                    location.pathname === `/chatroom/${room.id}` ? 'bg-[#404249]' : ''
+                  className={`w-full text-left px-3 py-1.5 rounded text-sm truncate transition font-medium ${
+                    isDarkMode
+                      ? `hover:bg-[#353945] ${location.pathname === `/chatroom/${room.id}` ? 'bg-[#353945]' : ''}`
+                      : `hover:bg-gray-200 ${location.pathname === `/chatroom/${room.id}` ? 'bg-gray-200' : ''}`
                   }`}
                 >
                   {room.name}
                 </button>
               ))
             ) : (
-              <p className="text-xs text-gray-500">尚未加入任何聊天室</p>
+              <p className={`text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>尚未加入任何聊天室</p>
             )}
           </div>
         </div>

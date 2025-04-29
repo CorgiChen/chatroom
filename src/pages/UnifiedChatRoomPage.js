@@ -16,6 +16,9 @@ import {
 } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import MessageList from '../components/MessageList';
+import MessageInput from '../components/MessageInput';
+import { useTheme } from '../context/ThemeContext';
+import Spinner from '../components/Spinner';
 
 const UnifiedChatRoomPage = () => {
   const { chatroomId } = useParams();
@@ -25,11 +28,12 @@ const UnifiedChatRoomPage = () => {
   const [chatroom, setChatroom] = useState(null);
   const [messages, setMessages] = useState([]);
   const [userMap, setUserMap] = useState({});
-  const [message, setMessage] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const messagesEndRef = useRef(null);
   const chatroomMessagesRef = useRef({});
   const navigateRef = useRef(navigate);
+  const { isDarkMode } = useTheme();
+  const [loading, setLoading] = useState(true);
 
   // 更新 navigateRef
   useEffect(() => {
@@ -170,10 +174,9 @@ const UnifiedChatRoomPage = () => {
   // 獲取當前聊天室的消息
   useEffect(() => {
     if (!currentUid) return;
-
+    setLoading(true);
     const fetchData = async () => {
       let q;
-
       if (isPublic) {
         q = query(collection(db, 'messages'), orderBy('createdAt', 'asc'));
       } else {
@@ -183,40 +186,33 @@ const UnifiedChatRoomPage = () => {
           alert('聊天室不存在');
           return navigate('/');
         }
-
         const data = roomSnap.data();
         if (!data.members.includes(currentUid)) {
           alert('你已不在此聊天室中');
           return navigate('/');
         }
-
         setChatroom(data);
         q = query(collection(db, 'chatrooms', chatroomId, 'messages'), orderBy('createdAt', 'asc'));
       }
-
       const unsubscribe = onSnapshot(q, async (snapshot) => {
         const fetchedMessages = [];
         const userIds = new Set();
-
         snapshot.forEach((doc) => {
           const data = doc.data();
           fetchedMessages.push({ id: doc.id, ...data });
           userIds.add(data.uid);
         });
-
         const map = {};
         for (const uid of userIds) {
           const userSnap = await getDoc(doc(db, 'users', uid));
           if (userSnap.exists()) map[uid] = userSnap.data();
         }
-
         setUserMap(map);
         setMessages(fetchedMessages);
+        setLoading(false);
       });
-
       return () => unsubscribe();
     };
-
     fetchData();
   }, [chatroomId, currentUid, navigate, isPublic]);
 
@@ -224,8 +220,7 @@ const UnifiedChatRoomPage = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
   
-  const handleSend = async (e) => {
-    e.preventDefault();
+  const handleSend = async (message) => {
     if (!message.trim()) return;
 
     // AI 聊天室判斷
@@ -234,7 +229,6 @@ const UnifiedChatRoomPage = () => {
       if (message.trim() === '/vip') {
         const today = new Date().toISOString().slice(0, 10);
         localStorage.setItem('corgi_ai_vip', today);
-        setMessage('');
         const msgsRef = collection(db, 'chatrooms', chatroomId, 'messages');
         await addDoc(msgsRef, {
           uid: 'bot',
@@ -250,7 +244,6 @@ const UnifiedChatRoomPage = () => {
         for (const docSnap of msgsSnap.docs) {
           await deleteDoc(docSnap.ref);
         }
-        setMessage('');
         return;
       }
       // /help 指令：顯示所有可用指令說明
@@ -261,7 +254,6 @@ const UnifiedChatRoomPage = () => {
           text: `可用指令：\n- /vip 開通當天對話無限次數\n- /clear 清空 AI 聊天室\n- /help 介紹指令`,
           createdAt: serverTimestamp(),
         });
-        setMessage('');
         return;
       }
       const today = new Date().toISOString().slice(0, 10);
@@ -284,7 +276,6 @@ const UnifiedChatRoomPage = () => {
         text: message.trim(),
         createdAt: serverTimestamp(),
       });
-      setMessage('');
       // 2. 呼叫 Gemini API
       try {
         // 取最近 30 則 AI 聊天室訊息（user/bot）
@@ -343,41 +334,77 @@ const UnifiedChatRoomPage = () => {
       return;
     }
 
-    // 一般聊天室/公開聊天室
-    const textToSend = message.trim();
-    setMessage(''); // 先清空
-    const collectionRef = isPublic
-      ? collection(db, 'messages')
-      : collection(db, 'chatrooms', chatroomId, 'messages');
-    await addDoc(collectionRef, {
+    // 一般訊息發送
+    const messageData = {
       uid: currentUid,
-      text: textToSend,
+      text: message,
       createdAt: serverTimestamp(),
-    });
+    };
+
+    if (isPublic) {
+      await addDoc(collection(db, 'messages'), messageData);
+    } else {
+      await addDoc(collection(db, 'chatrooms', chatroomId, 'messages'), messageData);
+    }
   };
   
 
   const handleUnsend = async (messageId) => {
+    // 樂觀 UI：先前端移除
+    setMessages((prev) => prev.filter(msg => msg.id !== messageId));
     const ref = isPublic
       ? doc(db, 'messages', messageId)
       : doc(db, 'chatrooms', chatroomId, 'messages', messageId);
-    await deleteDoc(ref);
+    try {
+      await deleteDoc(ref);
+    } catch (err) {
+      alert('收回失敗，請重試');
+    }
   };
 
   const chatroomName = isPublic ? '公開聊天室' : chatroom?.name;
 
+  // 聊天室標題列 onClick 切換聊天室
+  const handleTitleClick = () => {
+    if (!isPublic && chatroomId) {
+      // 重新導向到該聊天室
+      navigate(`/chatroom/${chatroomId}`);
+    } else if (isPublic) {
+      navigate('/');
+    }
+  };
+
+  if (loading) {
+    return <div className={`flex items-center justify-center h-screen w-full ${isDarkMode ? 'bg-[#1e1f22] text-white' : 'bg-[#f4f6fa] text-gray-900'}`}><Spinner size={48} /></div>;
+  }
+
+  if ((isPublic && messages.length === 0) || (!isPublic && (!chatroom || messages.length === 0))) {
+    return <div className={`flex items-center justify-center h-screen w-full ${isDarkMode ? 'bg-[#1e1f22] text-white' : 'bg-[#f4f6fa] text-gray-900'}`}>載入中...</div>;
+  }
+
   return (
-    <div className="flex flex-col h-full bg-[#1e1f22] text-white">
+    <div className={`flex flex-col h-full transition-colors duration-300 ${
+      isDarkMode ? 'bg-[#1e1f22] text-white' : 'bg-[#f4f6fa] text-gray-900'
+    }`}>
       {/* 上方：聊天室名稱 + 搜尋 */}
-      <div className="p-3 border-b border-gray-700 bg-[#2b2d31] flex items-center justify-between">
-        <div className="text-lg font-bold text-white md:ml-4">
+      <div className={`p-3 border-b flex items-center justify-between transition-colors duration-300 ${
+        isDarkMode ? 'border-[#23272f] bg-[#23272f]' : 'border-gray-200 bg-white'
+      }`}>
+        <div
+          className={`text-lg font-bold md:ml-4 cursor-pointer hover:underline ${isDarkMode ? 'text-white' : 'text-gray-900'}`}
+          onClick={handleTitleClick}
+        >
           {chatroomName}
         </div>
         <div className="w-2/3 flex items-center">
           <input
             type="text"
             placeholder="搜尋訊息..."
-            className="w-full px-4 py-2 rounded bg-gray-800 text-white text-sm focus:outline-none focus:ring focus:ring-blue-500"
+            className={`w-full px-4 py-2 rounded transition-colors duration-300 text-sm font-medium focus:outline-none focus:ring ${
+              isDarkMode
+                ? 'bg-[#353945] text-white placeholder-gray-400 focus:ring-[#5865F2]'
+                : 'bg-gray-100 text-gray-900 placeholder-gray-400 focus:ring-blue-400'
+            }`}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -399,34 +426,7 @@ const UnifiedChatRoomPage = () => {
       </div>
 
       {/* 底部：加人 + 輸入訊息 */}
-      <form
-        onSubmit={handleSend}
-        className="p-4 border-t border-gray-700 bg-[#2b2d31] flex items-center gap-2 flex-wrap md:flex-nowrap"
-      >
-        {/* 邀請 ID 功能（私人聊天室才顯示） */}
-        {/* {!isPublic && chatroomId && (
-          <div className="w-full md:w-auto">
-            <AddUserByIdForm chatroomId={chatroomId} />
-          </div>
-        )} */}
-
-        {/* 訊息輸入欄 + 發送按鈕 */}
-        <div className="flex flex-1 gap-2 w-full">
-          <input
-            type="text"
-            placeholder="輸入訊息..."
-            className="flex-1 px-4 py-2 rounded-lg bg-gray-800 text-white focus:outline-none focus:ring focus:ring-blue-500"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-          />
-          <button
-            type="submit"
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
-          >
-            發送
-          </button>
-        </div>
-      </form>
+      <MessageInput onSend={handleSend} />
     </div>
   );
 };

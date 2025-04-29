@@ -6,6 +6,7 @@ import { auth, db } from '../firebase';
 import { doc, getDoc, getDocs, collection, setDoc, addDoc } from 'firebase/firestore';
 import Sidebar from './Sidebar';
 import MemberList from './MemberList';
+import { useTheme } from '../context/ThemeContext';
 
 const MainLayout = () => {
   const [userData, setUserData] = useState(null);
@@ -14,6 +15,7 @@ const MainLayout = () => {
   const [showMembers, setShowMembers] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1176);
   const [loading, setLoading] = useState(true);
+  const { isDarkMode, toggleTheme } = useTheme();
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -93,18 +95,42 @@ const MainLayout = () => {
   if (loading) return <div className="flex items-center justify-center h-screen text-white text-lg">載入中...</div>;
 
   return (
-    <div className="relative flex h-[100dvh]  bg-[#1e1f22] text-white overflow-hidden">
+    <div className={`relative flex h-[100dvh] ${
+      isDarkMode 
+        ? 'bg-gradient-to-br from-[#1a1b1e] to-[#2d2f34] text-white' 
+        : 'bg-gradient-to-br from-gray-100 to-white text-gray-800'
+    } overflow-hidden transition-colors duration-300`}>
+      {/* 主題切換按鈕 */}
+      <button
+        onClick={toggleTheme}
+        className={`fixed top-4 right-4 z-50 p-2 rounded-full shadow-lg transition-colors ${
+          isDarkMode 
+            ? 'bg-[#5865F2] hover:bg-[#4752C4] text-white' 
+            : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
+        }`}
+      >
+        {isDarkMode ? '🌙' : '☀️'}
+      </button>
+
       {isMobile && !showSidebar && !showMembers && (
         <>
           <button
             onClick={toggleSidebar}
-            className="fixed bottom-48 left-4 z-40 bg-[#aaaaaa] px-4 py-2 text-xl rounded-full shadow"
+            className={`fixed bottom-48 left-4 z-40 px-4 py-2 text-xl rounded-full shadow-lg transition-colors ${
+              isDarkMode 
+                ? 'bg-[#5865F2] hover:bg-[#4752C4] text-white' 
+                : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
+            }`}
           >
             ☰
           </button>
           <button
             onClick={toggleMembers}
-            className="fixed bottom-48 right-4 z-40 bg-[#aaaaaa] px-4 py-2 text-xl rounded-full shadow"
+            className={`fixed bottom-48 right-4 z-40 px-4 py-2 text-xl rounded-full shadow-lg transition-colors ${
+              isDarkMode 
+                ? 'bg-[#5865F2] hover:bg-[#4752C4] text-white' 
+                : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
+            }`}
           >
             👥
           </button>
@@ -113,14 +139,18 @@ const MainLayout = () => {
 
       {/* 🔸 Sidebar（桌機固定，手機懸浮） */}
       {(isMobile && showSidebar) && (
-        <div className="fixed inset-0 bg-black/70 z-30" onClick={() => setShowSidebar(false)}>
-          <div className="absolute left-0 top-0 bottom-0 bg-[#2b2d31] w-60 h-full shadow-xl " onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-30" onClick={() => setShowSidebar(false)}>
+          <div className={`absolute left-0 top-0 bottom- w-60 h-full shadow-2xl ${
+            isDarkMode ? 'bg-[#2b2d31]' : 'bg-white'
+          }`} onClick={(e) => e.stopPropagation()}>
             {userData ? <Sidebar userData={userData} /> : <p className='text-gray-400 text-sm'>載入中...</p>}
           </div>
         </div>
       )}
       {!isMobile && (
-        <aside className="md:flex md:w-60 bg-[#2b2d31] flex-col">
+        <aside className={`md:flex md:w-60 flex-col border-r ${
+          isDarkMode ? 'bg-[#2b2d31] border-[#1f2023]' : 'bg-white border-gray-200'
+        }`}>
           <Sidebar userData={userData} />
         </aside>
       )}
@@ -128,17 +158,18 @@ const MainLayout = () => {
       {/* 中間內容區（限制寬度） */}
       <main className="flex-1 flex flex-col max-w-full relative md:pt-0 overflow-hidden">
         <div className="flex-1 flex flex-col overflow-y-auto">
-          <div className="max-w-[700px] w-full mx-auto flex flex-col min-h-full">
+          <div className="max-w-[800px] w-full mx-auto flex flex-col min-h-full px-4">
             <Outlet />
           </div>
         </div>
       </main>
 
-
       {/* 🔹 MemberList（桌機固定，手機懸浮） */}
       {(isMobile && showMembers) && (
-        <div className="fixed inset-0 bg-black/70 z-30 flex justify-end" onClick={() => setShowMembers(false)}>
-          <div className="h-full w-60 bg-[#2b2d31] shadow-xl" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-30 flex justify-end" onClick={() => setShowMembers(false)}>
+          <div className={`h-full w-60 shadow-2xl ${
+            isDarkMode ? 'bg-[#2b2d31]' : 'bg-white'
+          }`} onClick={(e) => e.stopPropagation()}>
             {userData ? (
               <MemberList
                 allUsers={allUsers}
@@ -150,7 +181,9 @@ const MainLayout = () => {
         </div>
       )}
       {!isMobile && (
-        <aside className="md:block w-70 bg-[#2b2d31] border-l border-gray-700 overflow-y-auto">
+        <aside className={`md:block w-70 border-l overflow-y-auto ${
+          isDarkMode ? 'bg-[#2b2d31] border-[#1f2023]' : 'bg-white border-gray-200'
+        }`}>
           <MemberList
             allUsers={allUsers}
             currentNickname={userData?.nickname}
