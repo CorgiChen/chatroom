@@ -21,15 +21,26 @@
 | Database read/write          |   15%     |     Y     |
 | RWD                          |   15%     |     Y     |
 | Git                          |   5%      |     Y     |
-| Chatroom  private/group      |   20%     |     Y     |
+| Private Chatroom             |   20%     |     Y     |
 
 # Basic components
 
-## Basic: Git 截圖
-![image](https://hackmd.io/_uploads/HkmMaZ2yge.png)
+## Basic: Membership Mechanism
+![image](https://hackmd.io/_uploads/rJXqH801xg.png)
 
 ## Basic: Database Read/Write
 ![image](https://hackmd.io/_uploads/HJYe0W31gx.png)
+
+## Basic: RWD
+![image](https://hackmd.io/_uploads/B1uz8ICygl.png)
+
+## Basic: Git
+![image](https://hackmd.io/_uploads/B1qE8LAyel.png)
+![image](https://hackmd.io/_uploads/SyIr88R1eg.png)
+
+## Basic: Private Chatroom
+    - 可以透過成員列表上方的小卡邀請別人進入私人聊天室
+![image](https://hackmd.io/_uploads/SkKQD8CJlx.png)
 
 ---
 
@@ -42,42 +53,49 @@
 | Handle code injection        |   2%      |     Y     |
 
 ## Advanced: Using React
-- 整個專題都是用 React 框架開發的
+    - 整個專題都是用 React 框架開發的
 
 ## Advanced: Chrome notification
-- 只要畫面不在聊天室，其他人傳訊息就可以收到
+    - 只要畫面不在聊天室，其他人傳訊息就可以收到
+![image](https://hackmd.io/_uploads/Ska_DUCJxx.png)
 
 ## Advanced: Third Party Sign In
+![image](https://hackmd.io/_uploads/rJXqH801xg.png)
 ![image](https://hackmd.io/_uploads/ryJh1M2yex.png)
 
 ## Advanced: CSS animation
-- 點擊成員列表
-- \>> 點擊任意成員
-- \>> 點擊小卡
-- \>> 華麗卡片旋轉動畫
+    點擊成員列表
+    >> 點擊任意成員
+    >> 點擊小卡
+    >> 華麗卡片旋轉動畫
+![image](https://hackmd.io/_uploads/BkDCwLAJxe.png)
 
 ## Advanced: Handle Code Injection
-- React 只要不使用 DangerouslysetInnerHtml 就不會汙染程式碼
+    - React 只要不使用 DangerouslysetInnerHtml 就不會汙染程式碼
+![image](https://hackmd.io/_uploads/SJFHdURkeg.png)
 
 ---
 
 | **Bonus components**         | **Score** | **Check** |
 | :--------------------------- | :-------: | :-------: |
 | User profile                 |   1%      |     Y     |
-| Profile picture              |   1%      |     X     |
-| Send image                   |   1%      |     X     |
+| Profile picture              |   1%      |     Y     |
+| Send image                   |   1%      |     Y     |
 | Send video                   |   1%      |     X     |
 | Chatbot (AI)                 |   2%      |     Y     |
 | Block User                   |   2%      |     X     |
 | Unsend message               |   3%      |     Y     |
 | Search for message           |   3%      |     Y     |
-| Send gif from Tenor API      |   3%      |     X     |
+| Send gif from Tenor API      |   3%      |     Y     |
 
 
-## Bonus: User profile
+## Bonus: User profile, Profile picture 
     - 點擊那個編輯的按鈕就會進到下方的頁面
-![image](https://hackmd.io/_uploads/r1xheGhyex.png)
-![image](https://hackmd.io/_uploads/r18ief3Jge.png)
+![image](https://hackmd.io/_uploads/B1YF_80kgx.png)
+![image](https://hackmd.io/_uploads/SkHsuUAkxg.png)
+
+## Bonus: Send image
+![image](https://hackmd.io/_uploads/H1_GFLR1xg.png)
 
 ## Bonus: Chatbot (AI) 
 ![image](https://hackmd.io/_uploads/r1_UQGn1eg.png)
@@ -90,6 +108,8 @@
     - 聊天室的最上面
 ![image](https://hackmd.io/_uploads/HJmzzfhkel.png)
 
+## Bonus: Send gif from Tenor API
+![image](https://hackmd.io/_uploads/SJNdKUAkgx.png)
 
 ---
 
@@ -117,28 +137,29 @@
 ## **功能說明與操作**
 
 1. **註冊/登入**  
-   - 支援 Email 註冊/登入與 Google 登入。
+    - 支援 Email 註冊/登入與 Google 登入。
 2. **聊天室管理**  
-   - 可建立私人群組聊天室，並邀請其他用戶加入。
+    - 可建立私人群組聊天室，並邀請其他用戶加入。
 3. **訊息功能**  
-   - 支援訊息搜尋、收回、惡意訊息過濾（防止 script/h1 等）。
+    - 支援惡意訊息過濾（防止 script/h1 等）。
+![image](https://hackmd.io/_uploads/H1PkTI0keg.png)
 4. **AI 聊天室**  
-   - 與 CORGI AI 對話，並有 /vip、/clear、/help 指令。
-5. **RWD 響應式設計**  
-   - 手機、平板、桌機皆可正常使用。
-6. **Chrome 通知**  
-   - 新訊息時會推播通知（需允許權限）。
-7. **CSS 動畫**  
-   - 按鈕 hover、AI 聊天室按鈕有白光閃過動畫、用戶檔案小卡。
-
----
-
-## **Bonus 功能說明**
-
-- **User profile**：可編輯個人資料（暱稱、Email、電話、地址）。
-- **Chatbot (AI)**：AI 聊天室。
+    - 與 CORGI AI 對話，並有 /vip、/clear、/help 指令。
     - /vip 開通當天對話無限次數
     - /clear 清空 AI 聊天室
     - /help 介紹指令
-- **Unsend message**：可收回自己發送的訊息。
-- **Search for message**：可搜尋聊天室訊息內容。
+![image](https://hackmd.io/_uploads/SJJ6nL0keg.png)
+5. **RWD 響應式設計**  
+    - 手機、平板、桌機皆可正常使用。
+6. **Chrome 通知**  
+    - 新訊息時會推播通知（需允許權限）。
+7. **CSS 動畫**  
+    - 按鈕 hover、AI 聊天室按鈕有白光閃過動畫、用戶檔案小卡。
+8. **Unsend message**
+    - 可收回自己發送的訊息。
+9. **Search for message**
+    - 可搜尋聊天室訊息內容。
+10. **Dark / Light Mode**
+    - 切換深淺色模式。
+![image](https://hackmd.io/_uploads/Bkj9380kxe.png)
+![image](https://hackmd.io/_uploads/BJlcnUAJel.png)
